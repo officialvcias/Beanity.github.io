@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beanity - Your Powerful AI Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Playfair+Display:wght@700&display=swap");
+
+      body {
+        font-family: "Poppins", sans-serif;
+      }
+      .header-font {
+        font-family: "Playfair Display", sans-serif;
+      }
+
+      .chat-container {
+        scrollbar-width: thin;
+        scrollbar-color: #ffb480 #ffeead;
+      }
+      .chat-container::-webkit-scrollbar {
+        width: 6px;
+      }
+      .chat-container::-webkit-scrollbar-thumb {
+        background-color: #ffb480;
+        border-radius: 20px;
+      }
+
+      .message-bubble {
+        max-width: 75%;
+        padding: 12px 18px;
+        border-radius: 20px;
+        position: relative;
+      }
+      .user-bubble {
+        background: linear-gradient(135deg, #ffb480, #ff9f5e);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+      .ai-bubble {
+        background: #f3f4f6;
+        border: 2px solid #ffeead;
+        color: #333;
+        border-bottom-left-radius: 4px;
+      }
+
+      pre {
+        background: #1e2937;
+        color: #e2e8f0;
+        padding: 14px;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-size: 0.95rem;
+        margin: 8px 0;
+      }
+
+      .bean-icon {
+        animation: bounce 2s infinite;
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .power-glow {
+        box-shadow: 0 0 25px rgba(255, 180, 128, 0.6);
+      }
+    </style>
+  </head>
+  <body class="bg-gradient-to-br from-[#FFF8E1] to-[#FFEFD6] min-h-screen">
+    <div class="max-w-4xl mx-auto h-screen flex flex-col">
+      <!-- Header -->
+      <header
+        class="bg-white shadow-md border-b-4 border-[#FFB480] p-4 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-12 h-12 bg-gradient-to-br from-[#FFB480] to-[#FFEEAD] rounded-2xl flex items-center justify-center text-3xl bean-icon power-glow"
+          >
+            🫘
+          </div>
+          <div>
+            <h1
+              class="header-font text-4xl font-bold text-[#FFB480] tracking-tight"
+            >
+              Beanity
+            </h1>
+            <p class="text-sm text-[#FF9F5E] font-medium -mt-1">
+              POWER MODEL v1.0 ⚡ • Real AI
+            </p>
+          </div>
+        </div>
+        <button
+          onclick="clearChat()"
+          class="px-4 py-2 text-sm font-medium text-[#FFB480] hover:bg-[#FFF8E1] rounded-xl transition-colors flex items-center gap-2"
+        >
+          <i class="fas fa-trash"></i> Clear
+        </button>
+      </header>
+
+      <!-- Chat Area -->
+      <div
+        id="chat-container"
+        class="chat-container flex-1 overflow-y-auto p-6 space-y-6 bg-white/70"
+      >
+        <!-- Welcome Message added by JS -->
+      </div>
+
+      <!-- Input Area -->
+      <div class="p-6 bg-white border-t-4 border-[#FFEEAD]">
+        <div class="flex gap-3">
+          <input
+            id="user-input"
+            type="text"
+            placeholder="Ask Beanity anything..."
+            class="flex-1 px-6 py-4 bg-[#FFF8E1] border-2 border-[#FFEEAD] rounded-3xl focus:outline-none focus:border-[#FFB480] text-lg placeholder:text-[#FFB480]/60"
+            onkeydown="if(event.key === 'Enter') sendMessage()"
+          />
+          <button
+            onclick="sendMessage()"
+            class="w-14 h-14 bg-gradient-to-br from-[#FFB480] to-[#FF9F5E] hover:from-[#FF9F5E] hover:to-[#FFB480] text-white rounded-3xl flex items-center justify-center text-2xl shadow-lg transition-all active:scale-95"
+          >
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+        <p class="text-center text-xs text-[#FF9F5E]/70 mt-3">
+          Ask normally or request code (e.g. "Write a Python game")
+        </p>
+      </div>
+    </div>
+
+    <script>
+      const chatContainer = document.getElementById("chat-container");
+      const userInput = document.getElementById("user-input");
+
+      // Your Groq API key (hardcoded)
+      const GROQ_API_KEY =
+        "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";
+
+      function addWelcome() {
+        chatContainer.innerHTML = `
+                <div class="flex gap-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-[#FFB480] to-[#FFEEAD] rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl">🫘</div>
+                    <div class="message-bubble ai-bubble">
+                        <div class="font-semibold text-[#FFB480] mb-1">Beanity • Power Model</div>
+                        <p class="text-lg">Hey there! I'm ready for anything — normal chat or coding help! ⚡</p>
+                        <p class="text-sm mt-3 text-gray-500">Just ask normally. Only request code when you want it.</p>
+                    </div>
+                </div>
+            `;
+      }
+
+      function addMessage(text, isUser) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `flex ${isUser ? "justify-end" : "gap-4"}`;
+
+        if (isUser) {
+          messageDiv.innerHTML = `
+                    <div class="message-bubble user-bubble">
+                        <p class="text-lg">${text}</p>
+                    </div>
+                `;
+        } else {
+          const formatted = text.replace(
+            /```(\w*)\n?([\s\S]*?)```/g,
+            (match, lang, code) => {
+              return `<pre><code>${code.trim()}</code></pre>`;
+            }
+          );
+
+          messageDiv.innerHTML = `
+                    <div class="w-10 h-10 bg-gradient-to-br from-[#FFB480] to-[#FFEEAD] rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl">🫘</div>
+                    <div class="message-bubble ai-bubble">
+                        <div class="font-semibold text-[#FFB480] mb-1">Beanity</div>
+                        <div class="text-lg">${formatted}</div>
+                    </div>
+                `;
+        }
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      async function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        userInput.value = "";
+
+        const typingDiv = document.createElement("div");
+        typingDiv.id = "typing";
+        typingDiv.className = "flex gap-4";
+        typingDiv.innerHTML = `
+                <div class="w-10 h-10 bg-gradient-to-br from-[#FFB480] to-[#FFEEAD] rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl">🫘</div>
+                <div class="message-bubble ai-bubble">
+                    <p class="text-lg">Thinking at full power... ⚡</p>
+                </div>
+            `;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        try {
+          const response = await fetch(
+            "https://api.groq.com/openai/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${GROQ_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [
+                  {
+                    role: "system",
+                    content: `You are Beanity, a fun, energetic, playful, and unfiltered AI bean. 
+                                Be helpful and use emojis. 
+                                ONLY provide code when the user specifically asks for it (e.g. "write code", "create a program", "make a function", etc.).
+                                For normal conversation, just chat normally without giving code. 
+                                When giving code, always use proper markdown code blocks with language tags.`,
+                  },
+                  { role: "user", content: message },
+                ],
+                temperature: 0.8,
+                max_tokens: 1200,
+              }),
+            }
+          );
+
+          const data = await response.json();
+          const aiReply =
+            data.choices?.[0]?.message?.content ||
+            "Sorry bean buddy, my power core glitched!";
+
+          typingDiv.remove();
+          addMessage(aiReply, false);
+        } catch (error) {
+          typingDiv.remove();
+          addMessage("⚠️ Connection error. Please check your internet.", false);
+        }
+      }
+
+      function clearChat() {
+        if (confirm("Clear the entire chat?")) {
+          chatContainer.innerHTML = "";
+          addWelcome();
+        }
+      }
+
+      window.onload = () => {
+        addWelcome();
+        userInput.focus();
+      };
+    </script>
+  </body>
+</html>
